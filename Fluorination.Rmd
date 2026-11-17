@@ -1,0 +1,101 @@
+---
+title: "Community Water Fluoridation and Adult Tooth Loss"
+author: "Michael Warnick"
+date: "2026-11-17"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+## Background
+Community water fluoridation means adding a small amount of fluoride to
+public drinking water to help prevent tooth decay.
+
+In 2025, Utah became the first state to ban fluoride in public drinking water, and Florida followed soon after.
+
+**Question:** Do states where more people drink fluoridated water have lower rates of tooth loss in adults?
+
+## The Data
+
+*This is simulated (fake) data for practice.*
+
+```{r data}
+fluoride = tibble(
+  state           = c("Utah", "Idaho", "Colorado", "Arizona", "California", "Oregon",
+                      "Texas", "Florida", "Georgia", "Ohio", "Illinois", "Minnesota",
+                      "New York", "Maine", "New Jersey"),
+  region          = c("West", "West", "West", "West", "West", "West",
+                      "South", "South", "South", "Midwest", "Midwest", "Midwest",
+                      "Northeast", "Northeast", "Northeast"),
+  pct_fluoridated = c(55, 35, 70, 55, 60, 25, 75, 75, 95, 90, 98, 98, 70, 80, 15),
+  pct_teeth_lost  = c(38, 43, 34, 39, 37, 44, 40, 41, 35, 33, 32, 30, 36, 35, 45)
+)
+
+knitr::kable(fluoride)
+```
+## Summary by Region
+
+```{r region-summary}
+region_avg = fluoride %>%
+  group_by(region) %>%
+  summarise(avg_fluoridated = mean(pct_fluoridated),
+            avg_teeth_lost  = mean(pct_teeth_lost))
+
+knitr::kable(region_avg, digits = 1)
+```
+
+The Midwest has the most fluoridation and the least tooth loss.
+## Fluoridation vs. Tooth Loss
+
+```{r scatter}
+fluoride %>%
+  ggplot(aes(x = pct_fluoridated,
+             y = pct_teeth_lost)) +
+  geom_point(aes(color = region), size = 3) +
+  geom_smooth(method = "lm", se = TRUE, color = "black") +
+  labs(title = "More Fluoridation, Less Tooth Loss",
+       x = "Population on fluoridated water (%)",
+       y = "Adults 65+ who lost 6+ teeth (%)",
+       color = "Region") +
+  theme_minimal()
+```
+As fluoridation goes up, tooth loss goes down.
+
+## Statistical Analysis
+
+```{r model}
+mod1 = glm(pct_teeth_lost ~ pct_fluoridated, data = fluoride)
+summary(mod1)
+```
+
+The p-value for `pct_fluoridated` is below 0.05, so fluoridation is
+significantly related to tooth loss.
+
+## Conclusions
+
+- States with more fluoridation have lower adult tooth loss in this data.
+- This uses fake data; the final project will use real CDC data.
+- Next step: add a U.S. map of fluoridation by state.
+
+
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
