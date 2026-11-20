@@ -1,0 +1,20 @@
+name: "michaelwarnick3-alt.github.io"
+output_dir: "."
+navbar:
+  title: "Michael Warnick"
+  type: inverse
+  left:
+    - text: "Home"
+      href: index.html
+    - text: "About"
+      href: index.html#about
+    - text: "Research"
+      href: index.html#research
+    - text: "Final Project"
+      href: Final_Project.html
+    - text: "Contact"
+      href: index.html#contact
+output:
+  html_document:
+    theme: flatly
+    css: styles.css

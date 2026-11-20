@@ -20,7 +20,7 @@ In 2025, Utah became the first state to ban fluoride in public drinking water, a
 
 ## The Data
 
-*This is simulated (fake) data for practice.*
+*This is not real data I made it up haha*
 
 ```{r data}
 fluoride = tibble(

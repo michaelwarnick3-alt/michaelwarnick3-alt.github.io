@@ -1,0 +1,34 @@
+---
+pagetitle: "Michael Warnick"
+---
+
+<div class="hero">
+<img src="me.JPEG" class="profile">
+<h1>Michael Warnick</h1>
+<p>Student at Utah Valley University | Future Dentist</p>
+</div>
+
+## About Me {#about}
+
+Hi! I'm Michael, a student at Utah Valley University working toward dental school. I was born and raised in Colorado, and outside of school I love the outdoors, some of my favorite outdoor activities include; skiing, mountain biking, & fly fishing.   
+
+I'm interested in health, science, and how data can help answer real questions about people's health. This website shows some of the work I've done in my BIOL 3100 data analysis class.
+
+## Research {#research}
+
+<div class="card">
+### Water Fluoridation and Tooth Loss
+
+In 2025, Utah became the first state to ban fluoride in public drinking water. For my final project, I used real CDC and Census data to look at whether states with more fluoridated water have less tooth loss in older adults, and what else might explain the differences between states.
+
+**[View my final project →](Final_Project.html)**
+</div>
+
+## Contact {#contact}
+
+- **Email:** 10911622.email@uvu.edu
+- **GitHub:** [michaelwarnick3-alt](https://github.com/michaelwarnick3-alt)
+
+<div class="footer">
+© 2026 Michael Warnick | Built with R Markdown
+</div>

@@ -1,0 +1,144 @@
+---
+title: "Does Fluoridated Water Mean Fewer Lost Teeth?"
+subtitle: "Community water fluoridation and adult tooth loss across U.S. states"
+author: "Michael Warnick"
+date: "2026-11-19"
+output:
+  html_document:
+    theme: flatly
+    toc: true
+    toc_float: true
+    code_folding: hide
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(message = FALSE, warning = FALSE, fig.align = "center")
+library(tidyverse)
+library(easystats)
+library(maps)
+
+## read in and combine the data
+fluoride = read_csv("Data/fluoride.csv")
+teeth    = read_csv("Data/teeth.csv")
+dental   = read_csv("Data/dental.csv")
+income   = read_csv("Data/income.csv")
+
+dat = fluoride %>%
+  full_join(teeth,  by = "state") %>%
+  full_join(dental, by = "state") %>%
+  full_join(income, by = "state") %>%
+  mutate(region = c(as.character(state.region), "South")[match(state, c(state.name, "District of Columbia"))],
+         region = ifelse(region == "North Central", "Midwest", region)) %>%
+  drop_na()
+```
+
+## Background
+
+Community water fluoridation is when cities add a small amount of fluoride to the public drinking water to help prevent cavities. It started back in 1945, and since then most of the U.S. has gotten used to it being in their tap water.
+
+I picked this topic because it's been in the news a lot lately. In **2025, Utah became the first state to ban fluoride in public drinking water**, and **Florida followed soon after**. Since I live in Utah and I'm planning on going to dental school, I was curious if fluoride actually makes a difference in people's teeth, or if other things matter more.
+
+## The Question
+
+**Do states where more people drink fluoridated water have lower rates of tooth loss in older adults?**
+
+Going into this, I expected states with more fluoride to have less tooth loss.
+
+## The Data
+
+I combined four public data sets by state:
+
+| Variable | Description | Source |
+|---|---|---|
+| `pct_fluoridated` | % of people who get fluoridated tap water (2022) | CDC |
+| `pct_teeth_lost` | % of adults 65+ who have lost all their teeth (2024) | CDC BRFSS / America's Health Rankings |
+| `pct_dental_visit` | % of adults who went to the dentist in the past year (2024) | CDC BRFSS / America's Health Rankings |
+| `median_income` | Median household income (2023) | U.S. Census Bureau |
+
+## Where Is Water Fluoridated?
+
+```{r map}
+## Making a U.S. map
+map_data("state") %>%
+  left_join(dat %>% mutate(region_lower = tolower(state)),
+            by = c("region" = "region_lower")) %>%
+  ggplot(aes(x = long, y = lat, group = group, fill = pct_fluoridated)) +
+  geom_polygon(color = "white") +
+  coord_quickmap() +
+  scale_fill_viridis_c(name = "% Fluoridated") +
+  theme_void()
+```
+
+Most of the Midwest and South have over 80% of people on fluoridated water, but some states like **Hawaii, New Jersey, and Oregon** are way lower. I was surprised that **Utah was only at 44%** even before the ban.
+
+## Fluoridation vs. Tooth Loss
+
+```{r fluoride-plot}
+dat %>%
+  ggplot(aes(x = pct_fluoridated, y = pct_teeth_lost)) +
+  geom_point(aes(color = region), size = 3) +
+  geom_smooth(method = "lm", color = "black") +
+  labs(x = "Population on fluoridated water (%)",
+       y = "Adults 65+ who lost all teeth (%)",
+       color = "Region") +
+  theme_minimal()
+```
+
+This was **not** what I expected. There's barely any relationship, and the line actually goes slightly **up**.
+
+## Income vs. Tooth Loss
+
+```{r income-plot}
+dat %>%
+  ggplot(aes(x = median_income, y = pct_teeth_lost)) +
+  geom_point(aes(color = region), size = 3) +
+  geom_smooth(method = "lm", color = "black") +
+  labs(x = "Median household income ($)",
+       y = "Adults 65+ who lost all teeth (%)",
+       color = "Region") +
+  theme_minimal()
+```
+
+Income had a much stronger relationship. **States with higher incomes had a lot less tooth loss.**
+
+## Tooth Loss by Region
+
+```{r region-plot}
+dat %>%
+  ggplot(aes(x = region, y = pct_teeth_lost, fill = region)) +
+  geom_boxplot() +
+  labs(x = "Region", y = "Adults 65+ who lost all teeth (%)") +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+The **South** has a lot of fluoride but the most tooth loss, and it also has the lowest incomes. I think that's why the fluoride line went up.
+
+## Statistical Models
+
+```{r models}
+mod1 = glm(pct_teeth_lost ~ pct_fluoridated, data = dat)
+mod2 = glm(pct_teeth_lost ~ median_income + pct_dental_visit, data = dat)
+mod3 = glm(pct_teeth_lost ~ pct_fluoridated + median_income + pct_dental_visit, data = dat)
+
+compare_performance(mod1, mod2, mod3, rank = TRUE)
+```
+
+- **Fluoride by itself (mod1)** only explains about **6%** of the differences in tooth loss.
+- **Income + dental visits (mod2)** explains about **77%**, so it's the best model.
+- Adding fluoride **(mod3)** didn't make the model any better.
+
+## Conclusions
+
+- At the state level, fluoride wasn't really related to tooth loss in older adults.
+- **Income and going to the dentist** mattered way more.
+- Utah has low fluoride but one of the lowest tooth loss rates (7.7%), probably because of its high income and lots of dentist visits.
+
+I don't think this proves fluoride doesn't work. I used state-level data and looked at adults 65+, but fluoride mostly helps kids. If I did this again, I'd look at **kids' cavity rates** in Utah and Florida before and after the bans.
+
+## Sources
+
+- CDC Water Fluoridation Statistics: <https://www.cdc.gov/fluoridation/php/statistics/2022-water-fluoridation-statistics.html>
+- America's Health Rankings: <https://www.americashealthrankings.org/explore/measures/teeth_extractions_sr>
+- U.S. Census Bureau: <https://data.census.gov/table/ACSST1Y2023.S1901>
+- Utah fluoride ban: <https://www.waterworld.com/drinking-water-treatment/news/55278976/utah-becomes-first-us-state-to-ban-fluoride-in-drinking-water>
